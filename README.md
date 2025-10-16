@@ -1,11 +1,23 @@
-# Go Soap [![Build Status](https://travis-ci.org/tiaguinho/gosoap.svg?branch=master)](https://travis-ci.org/tiaguinho/gosoap) [![GoDoc](https://godoc.org/github.com/tiaguinho/gosoap?status.png)](https://godoc.org/github.com/tiaguinho/gosoap) [![Go Report Card](https://goreportcard.com/badge/github.com/tiaguinho/gosoap)](https://goreportcard.com/report/github.com/tiaguinho/gosoap) [![Coverage Status](https://coveralls.io/repos/github/tiaguinho/gosoap/badge.svg?branch=master)](https://coveralls.io/github/tiaguinho/gosoap?branch=master) [![patreon](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/temporin) [![Known Vulnerabilities](https://snyk.io/test/github/tiaguinho/gosoap/badge.svg)](https://snyk.io/test/github/tiaguinho/gosoap)
-package to help with SOAP integrations (client)
+# Go Soap [![Coverage Status](https://coveralls.io/repos/github/tiaguinho/gosoap/badge.svg?branch=master)](https://coveralls.io/github/tiaguinho/gosoap?branch=master)
+Go client for easy integration with SOAP servers.
+
+This repository is a fork of https://github.com/tiaguinho/gosoap.
 
 ### Install
 
 ```bash
-go get github.com/tiaguinho/gosoap
+go get github.com/Magic-Kot/soap-lite.go
 ```
+
+### Configuration Options
+
+gosoap can be configured when creating the SOAP client by using `SoapClientWithConfig()`
+instead of the regular `SoapClient()` method. This method takes an additional `gosoap.Config{}`
+struct that has the following configuration options:
+
+- Dump (`boolean`): this makes gosoap dump the raw HTTP request and response in the log (useful for debugging)
+- Logger (`DumpLogger`): Logger takes any type that implements the [`gosoap.DumpLogger`](https://github.com/Siteminds/gosoap/blob/master/soap.go#L29) interface. This is useful for wrapping Dump logs into your own logging solution (e.g. zap, logrus, zerolog, etc.)
+- AutoAction (`boolean`): when set to true, this makes gosoap automatically set the action header based on the operation name.
 
 ### Examples
 
@@ -20,7 +32,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tiaguinho/gosoap"
+	"github.com/Magic-Kot/soap-lite.go"
 )
 
 // GetIPLocationResponse will hold the Soap response
@@ -87,7 +99,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/tiaguinho/gosoap"
+	"github.com/Magic-Kot/soap-lite.go"
 )
 
 // GetIPLocationResponse will hold the Soap response
