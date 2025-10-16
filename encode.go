@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	soapPrefix = "soap"
+	soapPrefix                            = "soap"
 	customEnvelopeAttrs map[string]string = nil
 )
 
@@ -108,7 +108,23 @@ func (tokens *tokenData) recursiveEncode(hm interface{}) {
 		content := xml.CharData(v.String())
 		tokens.data = append(tokens.data, content)
 	case reflect.Struct:
-		tokens.data = append(tokens.data, v.Interface())
+		t := v.Type()
+		for i := 0; i < v.NumField(); i++ {
+			fieldType := t.Field(i)
+			fieldValue := v.Field(i).Interface()
+
+			key := fieldType.Tag.Get("xml")
+			if key == "" {
+				key = fieldType.Name
+			}
+
+			start := xml.StartElement{Name: xml.Name{Local: key}}
+			tokens.data = append(tokens.data, start)
+
+			tokens.recursiveEncode(fieldValue)
+
+			tokens.data = append(tokens.data, xml.EndElement{Name: start.Name})
+		}
 	}
 }
 
@@ -130,7 +146,7 @@ func (tokens *tokenData) startEnvelope() {
 		e.Attr = make([]xml.Attr, 0)
 		for local, value := range customEnvelopeAttrs {
 			e.Attr = append(e.Attr, xml.Attr{
-				Name: xml.Name{Space: "", Local: local},
+				Name:  xml.Name{Space: "", Local: local},
 				Value: value,
 			})
 		}
