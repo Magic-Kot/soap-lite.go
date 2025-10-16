@@ -44,8 +44,9 @@ func (l *fmtLogger) LogResponse(method string, dump []byte) {
 
 // Config config the Client
 type Config struct {
-	Dump   bool
-	Logger DumpLogger
+	Dump       bool
+	Logger     DumpLogger
+	AutoAction bool
 }
 
 // SoapClient return new *Client to handle the requests with the WSDL
@@ -72,7 +73,7 @@ func SoapClientWithConfig(wsdl string, httpClient *http.Client, config *Config) 
 		wsdl:       wsdl,
 		config:     config,
 		HTTPClient: httpClient,
-		AutoAction: false,
+		AutoAction: config.AutoAction,
 	}
 
 	return c, nil
