@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -44,8 +43,9 @@ func (l *fmtLogger) LogResponse(method string, dump []byte) {
 
 // Config config the Client
 type Config struct {
-	Dump   bool
-	Logger DumpLogger
+	Dump       bool
+	Logger     DumpLogger
+	AutoAction bool
 }
 
 // SoapClient return new *Client to handle the requests with the WSDL
@@ -72,7 +72,7 @@ func SoapClientWithConfig(wsdl string, httpClient *http.Client, config *Config) 
 		wsdl:       wsdl,
 		config:     config,
 		HTTPClient: httpClient,
-		AutoAction: false,
+		AutoAction: config.AutoAction,
 	}
 
 	return c, nil
@@ -167,7 +167,7 @@ func (c *Client) Do(req *Request) (res *Response, err error) {
 	}
 
 	if c.Definitions.Services == nil {
-		return nil, errors.New("No Services found in wsdl definitions")
+		return nil, errors.New("no Services found in wsdl definitions")
 	}
 
 	p := &process{
@@ -263,7 +263,7 @@ func (p *process) doRequest(url string) ([]byte, error) {
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 400 {
 		if !(p.Client.config != nil && p.Client.config.Dump) {
-			_, err := io.Copy(ioutil.Discard, resp.Body)
+			_, err := io.Copy(io.Discard, resp.Body)
 			if err != nil {
 				return nil, err
 			}
@@ -271,7 +271,7 @@ func (p *process) doRequest(url string) ([]byte, error) {
 		return nil, errors.New("unexpected status code: " + resp.Status)
 	}
 
-	return ioutil.ReadAll(resp.Body)
+	return io.ReadAll(resp.Body)
 }
 
 func (p *process) httpClient() *http.Client {
