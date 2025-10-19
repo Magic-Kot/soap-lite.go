@@ -72,6 +72,15 @@ type tokenData struct {
 func (tokens *tokenData) recursiveEncode(hm interface{}) {
 	v := reflect.ValueOf(hm)
 
+	if v.Kind() == reflect.Ptr && v.IsNil() {
+		return
+	}
+
+	if v.Kind() == reflect.Ptr {
+		tokens.recursiveEncode(v.Elem().Interface())
+		return
+	}
+
 	switch v.Kind() {
 	case reflect.Map:
 		for _, key := range v.MapKeys() {
@@ -106,6 +115,15 @@ func (tokens *tokenData) recursiveEncode(hm interface{}) {
 		}
 	case reflect.String:
 		content := xml.CharData(v.String())
+		tokens.data = append(tokens.data, content)
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		content := xml.CharData(fmt.Sprintf("%d", v.Int()))
+		tokens.data = append(tokens.data, content)
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		content := xml.CharData(fmt.Sprintf("%d", v.Uint()))
+		tokens.data = append(tokens.data, content)
+	case reflect.Float32, reflect.Float64:
+		content := xml.CharData(fmt.Sprintf("%f", v.Float()))
 		tokens.data = append(tokens.data, content)
 	case reflect.Struct:
 		t := v.Type()
