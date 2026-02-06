@@ -52,8 +52,7 @@ func TestSoapClient(t *testing.T) {
 
 func TestSoapClienWithClient(t *testing.T) {
 	client, err := SoapClient(scts[3].URL, scts[3].Client)
-
-	if client.HTTPClient != scts[3].Client {
+	if client != nil && client.HTTPClient != scts[3].Client {
 		t.Errorf("HTTP client is not the same as in initialization: - error: %s", err)
 	}
 

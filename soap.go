@@ -185,7 +185,12 @@ func (c *Client) Do(req *Request) (res *Response, err error) {
 		return nil, err
 	}
 
-	b, err := p.doRequest(c.Definitions.Services[0].Ports[0].SoapAddresses[0].Location)
+	baseUrl, err := pickWSDLEndpoint(c.Definitions.Services[0].Ports)
+	if err != nil {
+		return nil, err
+	}
+
+	b, err := p.doRequest(baseUrl)
 	if err != nil {
 		return nil, ErrorWithPayload{err, p.Payload}
 	}
@@ -279,6 +284,53 @@ func (p *process) httpClient() *http.Client {
 		return p.Client.HTTPClient
 	}
 	return http.DefaultClient
+}
+
+// pickWSDLEndpoint selects URL from WSDL ports with priority https → http
+func pickWSDLEndpoint(ports []*wsdlPort) (string, error) {
+	for _, port := range ports {
+		addr, ok := selectBestAddress(port.SoapAddresses)
+		if ok {
+			return addr, nil
+		}
+	}
+
+	return "", errors.New("no valid soap addresses found")
+}
+
+// selectBestAddress selects best address from soap list:address
+func selectBestAddress(addresses []*soapAddress) (string, bool) {
+	for _, addr := range addresses {
+		if url, ok := isHTTPS(addr.Location); ok {
+			return url, true
+		}
+	}
+
+	for _, addr := range addresses {
+		if url, ok := isHTTP(addr.Location); ok {
+			return url, true
+		}
+	}
+
+	return "", false
+}
+
+// isHTTPS verifies and normalizes HTTPS address
+func isHTTPS(location string) (string, bool) {
+	url := strings.TrimSpace(location)
+	if strings.HasPrefix(strings.ToLower(url), "https://") {
+		return url, true
+	}
+	return "", false
+}
+
+// isHTTP verifies and normalizes HTTP address
+func isHTTP(location string) (string, bool) {
+	url := strings.TrimSpace(location)
+	if strings.HasPrefix(strings.ToLower(url), "http://") {
+		return url, true
+	}
+	return "", false
 }
 
 // ErrorWithPayload error payload schema
